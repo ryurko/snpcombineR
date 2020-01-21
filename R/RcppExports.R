@@ -113,9 +113,9 @@ compute_fixed_gene_level_test <- function(sim_gwas_data, sim_truth_matrix, genot
     .Call(`_snpcombineR_compute_fixed_gene_level_test`, sim_gwas_data, sim_truth_matrix, genotype_cor_matrix)
 }
 
-#' @rdname null_fixed_cor_gene_test_sim
+#' @rdname fixed_cor_gene_test_sim
 #' @export
-fixed_cor_gene_test_sim <- function(genotype_data, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, truth_sim_n_blocks, truth_sim_block_size, eps) {
-    .Call(`_snpcombineR_fixed_cor_gene_test_sim`, genotype_data, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, truth_sim_n_blocks, truth_sim_block_size, eps)
+fixed_cor_gene_test_sim <- function(genotype_data, genotype_cor_matrix, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, truth_sim_n_blocks, truth_sim_block_size, n_cores, eps) {
+    .Call(`_snpcombineR_fixed_cor_gene_test_sim`, genotype_data, genotype_cor_matrix, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, truth_sim_n_blocks, truth_sim_block_size, n_cores, eps)
 }
 

@@ -1,6 +1,7 @@
 #include <RcppEnsmallen.h>
 #include <RcppArmadilloExtensions/sample.h>
-
+#include <omp.h>
+// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::plugins("cpp11")]]
 
 // [[Rcpp::depends(RcppEnsmallen)]]
@@ -764,10 +765,11 @@ arma::mat compute_fixed_gene_level_test(arma::mat sim_gwas_data,
 
 
 // Given a genotype matrix generate simulated GWAS data with provided settings
-//' @rdname null_fixed_cor_gene_test_sim
+//' @rdname fixed_cor_gene_test_sim
 //' @export
 // [[Rcpp::export]]
 arma::mat fixed_cor_gene_test_sim(arma::mat genotype_data,
+                                  arma::mat genotype_cor_matrix,
                                   int n_gene_sims,
                                   bool is_non_null,
                                   arma::uvec causal_snp_i,
@@ -775,11 +777,14 @@ arma::mat fixed_cor_gene_test_sim(arma::mat genotype_data,
                                   double case_rate,
                                   int truth_sim_n_blocks,
                                   int truth_sim_block_size,
+                                  int n_cores,
                                   double eps) {
+
+  omp_set_num_threads(n_cores);
 
   // First compute the correlation matrix of the genotype data using the wrapper
   // for the Armadillo correlation function:
-  arma::mat genotype_cor_matrix = compute_cor_matrix(genotype_data);
+  //arma::mat genotype_cor_matrix = compute_cor_matrix(genotype_data);
 
   // Generate the matrix of z-stats and p-values to use for computing the
   // simulated truth p-values:
@@ -794,6 +799,7 @@ arma::mat fixed_cor_gene_test_sim(arma::mat genotype_data,
 
   // Intialize the simulation results matrix:
   arma::mat sim_gene_tests(n_gene_sims, 20); // TEMPORARY STORE 20 COLS
+  # pragma omp parallel for
   for (int i = 0; i < n_gene_sims; i++) {
 
     // Generate the GWAS results:

@@ -258,12 +258,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // fixed_cor_gene_test_sim
-arma::mat fixed_cor_gene_test_sim(arma::mat genotype_data, int n_gene_sims, bool is_non_null, arma::uvec causal_snp_i, double causal_or, double case_rate, int truth_sim_n_blocks, int truth_sim_block_size, double eps);
-RcppExport SEXP _snpcombineR_fixed_cor_gene_test_sim(SEXP genotype_dataSEXP, SEXP n_gene_simsSEXP, SEXP is_non_nullSEXP, SEXP causal_snp_iSEXP, SEXP causal_orSEXP, SEXP case_rateSEXP, SEXP truth_sim_n_blocksSEXP, SEXP truth_sim_block_sizeSEXP, SEXP epsSEXP) {
+arma::mat fixed_cor_gene_test_sim(arma::mat genotype_data, arma::mat genotype_cor_matrix, int n_gene_sims, bool is_non_null, arma::uvec causal_snp_i, double causal_or, double case_rate, int truth_sim_n_blocks, int truth_sim_block_size, int n_cores, double eps);
+RcppExport SEXP _snpcombineR_fixed_cor_gene_test_sim(SEXP genotype_dataSEXP, SEXP genotype_cor_matrixSEXP, SEXP n_gene_simsSEXP, SEXP is_non_nullSEXP, SEXP causal_snp_iSEXP, SEXP causal_orSEXP, SEXP case_rateSEXP, SEXP truth_sim_n_blocksSEXP, SEXP truth_sim_block_sizeSEXP, SEXP n_coresSEXP, SEXP epsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type genotype_data(genotype_dataSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type genotype_cor_matrix(genotype_cor_matrixSEXP);
     Rcpp::traits::input_parameter< int >::type n_gene_sims(n_gene_simsSEXP);
     Rcpp::traits::input_parameter< bool >::type is_non_null(is_non_nullSEXP);
     Rcpp::traits::input_parameter< arma::uvec >::type causal_snp_i(causal_snp_iSEXP);
@@ -271,8 +272,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type case_rate(case_rateSEXP);
     Rcpp::traits::input_parameter< int >::type truth_sim_n_blocks(truth_sim_n_blocksSEXP);
     Rcpp::traits::input_parameter< int >::type truth_sim_block_size(truth_sim_block_sizeSEXP);
+    Rcpp::traits::input_parameter< int >::type n_cores(n_coresSEXP);
     Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
-    rcpp_result_gen = Rcpp::wrap(fixed_cor_gene_test_sim(genotype_data, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, truth_sim_n_blocks, truth_sim_block_size, eps));
+    rcpp_result_gen = Rcpp::wrap(fixed_cor_gene_test_sim(genotype_data, genotype_cor_matrix, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, truth_sim_n_blocks, truth_sim_block_size, n_cores, eps));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -297,7 +299,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_snpcombineR_generate_sim_truth_data", (DL_FUNC) &_snpcombineR_generate_sim_truth_data, 4},
     {"_snpcombineR_compute_fixed_sim_pvals", (DL_FUNC) &_snpcombineR_compute_fixed_sim_pvals, 3},
     {"_snpcombineR_compute_fixed_gene_level_test", (DL_FUNC) &_snpcombineR_compute_fixed_gene_level_test, 3},
-    {"_snpcombineR_fixed_cor_gene_test_sim", (DL_FUNC) &_snpcombineR_fixed_cor_gene_test_sim, 9},
+    {"_snpcombineR_fixed_cor_gene_test_sim", (DL_FUNC) &_snpcombineR_fixed_cor_gene_test_sim, 11},
     {NULL, NULL, 0}
 };
 
