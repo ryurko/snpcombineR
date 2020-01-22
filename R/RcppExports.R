@@ -11,10 +11,16 @@ resample_genotype_data <- function(genotype_data, n_resamples) {
     .Call(`_snpcombineR_resample_genotype_data`, genotype_data, n_resamples)
 }
 
+#' @rdname create_gwas_case_prob
+#' @export
+create_gwas_case_prob <- function(genotype_data, is_non_null, causal_snp_i, causal_or, case_rate) {
+    .Call(`_snpcombineR_create_gwas_case_prob`, genotype_data, is_non_null, causal_snp_i, causal_or, case_rate)
+}
+
 #' @rdname simulate_gene_gwas_data
 #' @export
-simulate_gene_gwas_data <- function(genotype_data, is_non_null, causal_snp_i, causal_or, case_rate) {
-    .Call(`_snpcombineR_simulate_gene_gwas_data`, genotype_data, is_non_null, causal_snp_i, causal_or, case_rate)
+simulate_gene_gwas_data <- function(genotype_data, case_prob) {
+    .Call(`_snpcombineR_simulate_gene_gwas_data`, genotype_data, case_prob)
 }
 
 #' @rdname compute_cor_matrix

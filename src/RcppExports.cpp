@@ -31,9 +31,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// simulate_gene_gwas_data
-arma::mat simulate_gene_gwas_data(arma::mat genotype_data, bool is_non_null, arma::uvec causal_snp_i, double causal_or, double case_rate);
-RcppExport SEXP _snpcombineR_simulate_gene_gwas_data(SEXP genotype_dataSEXP, SEXP is_non_nullSEXP, SEXP causal_snp_iSEXP, SEXP causal_orSEXP, SEXP case_rateSEXP) {
+// create_gwas_case_prob
+arma::vec create_gwas_case_prob(arma::mat genotype_data, bool is_non_null, arma::uvec causal_snp_i, double causal_or, double case_rate);
+RcppExport SEXP _snpcombineR_create_gwas_case_prob(SEXP genotype_dataSEXP, SEXP is_non_nullSEXP, SEXP causal_snp_iSEXP, SEXP causal_orSEXP, SEXP case_rateSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -42,7 +42,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::uvec >::type causal_snp_i(causal_snp_iSEXP);
     Rcpp::traits::input_parameter< double >::type causal_or(causal_orSEXP);
     Rcpp::traits::input_parameter< double >::type case_rate(case_rateSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulate_gene_gwas_data(genotype_data, is_non_null, causal_snp_i, causal_or, case_rate));
+    rcpp_result_gen = Rcpp::wrap(create_gwas_case_prob(genotype_data, is_non_null, causal_snp_i, causal_or, case_rate));
+    return rcpp_result_gen;
+END_RCPP
+}
+// simulate_gene_gwas_data
+arma::mat simulate_gene_gwas_data(arma::mat genotype_data, arma::vec case_prob);
+RcppExport SEXP _snpcombineR_simulate_gene_gwas_data(SEXP genotype_dataSEXP, SEXP case_probSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type genotype_data(genotype_dataSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type case_prob(case_probSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulate_gene_gwas_data(genotype_data, case_prob));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -282,7 +294,8 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_snpcombineR_logit_reg_lbfgs", (DL_FUNC) &_snpcombineR_logit_reg_lbfgs, 2},
     {"_snpcombineR_resample_genotype_data", (DL_FUNC) &_snpcombineR_resample_genotype_data, 2},
-    {"_snpcombineR_simulate_gene_gwas_data", (DL_FUNC) &_snpcombineR_simulate_gene_gwas_data, 5},
+    {"_snpcombineR_create_gwas_case_prob", (DL_FUNC) &_snpcombineR_create_gwas_case_prob, 5},
+    {"_snpcombineR_simulate_gene_gwas_data", (DL_FUNC) &_snpcombineR_simulate_gene_gwas_data, 2},
     {"_snpcombineR_compute_cor_matrix", (DL_FUNC) &_snpcombineR_compute_cor_matrix, 1},
     {"_snpcombineR_compute_chol_matrix", (DL_FUNC) &_snpcombineR_compute_chol_matrix, 1},
     {"_snpcombineR_check_is_pd_cor_matrix", (DL_FUNC) &_snpcombineR_check_is_pd_cor_matrix, 2},

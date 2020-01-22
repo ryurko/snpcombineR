@@ -113,23 +113,23 @@ arma::mat resample_genotype_data(arma::mat genotype_data,
 }
 
 
-// Given a genotype matrix generate simulated GWAS data with provided settings
-//' @rdname simulate_gene_gwas_data
+// Compute the quantities necessary for generating the GWAS data
+//' @rdname create_gwas_case_prob
 //' @export
 // [[Rcpp::export]]
-arma::mat simulate_gene_gwas_data(arma::mat genotype_data,
-                                  bool is_non_null,
-                                  arma::uvec causal_snp_i,
-                                  double causal_or,
-                                  double case_rate) {
+arma::vec create_gwas_case_prob(arma::mat genotype_data,
+                                bool is_non_null,
+                                arma::uvec causal_snp_i,
+                                double causal_or,
+                                double case_rate) {
   int n_subjects = genotype_data.n_rows;
-  arma::vec beta = arma::zeros(genotype_data.n_cols);
+  // arma::vec beta = arma::zeros(genotype_data.n_cols);
   // Initialize the intercept based on the provided case-rate,
   double prob_intercept = log(case_rate / (1.0 - case_rate));
 
   arma::vec geno_effect = arma::zeros(n_subjects);
   double double_n_subjects = genotype_data.n_rows;
-  int n_snps = genotype_data.n_cols;
+  //int n_snps = genotype_data.n_cols;
 
   // Next determine the effect sizes and predicted probabilities based on the
   // type of gene - if null we don't need to do anything else, but if non-null
@@ -142,7 +142,8 @@ arma::mat simulate_gene_gwas_data(arma::mat genotype_data,
     arma::vec geno_count_freq(unique_geno_counts.n_elem);
     arma::uvec geno_count_i;
     double geno_i_val;
-    for (int i = 0; i < unique_geno_counts.n_elem; i++) {
+    int i;
+    for (i = 0; i < unique_geno_counts.n_elem; i++) {
       geno_i_val = unique_geno_counts[i];
       geno_count_i = find(causal_snp_geno_sums == geno_i_val);
       geno_count_freq[i] = geno_count_i.n_elem;
@@ -150,8 +151,8 @@ arma::mat simulate_gene_gwas_data(arma::mat genotype_data,
     // Now update the intercept:
     prob_intercept -= (log(causal_or) * sum(unique_geno_counts % geno_count_freq)) / double_n_subjects;
 
-    arma::vec causal_beta(causal_snp_i.n_elem);
-    causal_beta.fill(log(causal_or));
+    //arma::vec causal_beta(causal_snp_i.n_elem);
+    //causal_beta.fill(log(causal_or));
 
     geno_effect = causal_snp_geno_sums * log(causal_or);
 
@@ -160,11 +161,25 @@ arma::mat simulate_gene_gwas_data(arma::mat genotype_data,
   // Next the probability of being a case:
   arma::vec exp_xbeta = exp(geno_effect + prob_intercept);
   arma::vec case_prob = exp_xbeta / (1.0  + exp_xbeta);
+
+  return case_prob;
+}
+
+
+// Given a genotype matrix generate simulated GWAS data with provided settings
+//' @rdname simulate_gene_gwas_data
+//' @export
+// [[Rcpp::export]]
+arma::mat simulate_gene_gwas_data(arma::mat genotype_data,
+                                  arma::vec case_prob) {
+  int n_subjects = genotype_data.n_rows;
+  int n_snps = genotype_data.n_cols;
   // Create numeric versions of this to generate the vector of coin tosses for
   // each subject:
   // Generate the vector of coin toss results:
   arma::vec case_status(n_subjects);
-  for (int subject_i = 0; subject_i < n_subjects; subject_i++) {
+  int subject_i;
+  for (subject_i = 0; subject_i < n_subjects; subject_i++) {
     case_status[subject_i] = R::rbinom(1, case_prob[subject_i]);
   }
 
@@ -172,7 +187,8 @@ arma::mat simulate_gene_gwas_data(arma::mat genotype_data,
   arma::mat sim_gwas(n_snps, 4); // since the logit returns four columns
   arma::mat design_mat = arma::ones(n_subjects, 1);
   arma::mat snp_results;
-  for (int j = 0; j < n_snps; j++) {
+  int j;
+  for (j = 0; j < n_snps; j++) {
     snp_results = logit_reg_lbfgs(arma::join_horiz(design_mat, genotype_data.col(j)), case_status);
     sim_gwas.row(j) = snp_results.row(1); // Ignore's the intercept row
   }
@@ -623,11 +639,9 @@ arma::mat simulate_gene_level_stats(arma::mat init_genotype_data,
   } else {
     genotype_data = init_genotype_data;
   }
-  sim_gwas_results =  simulate_gene_gwas_data(genotype_data,
-                                              is_non_null,
-                                              causal_snp_i,
-                                              causal_or,
-                                              case_rate);
+  arma::vec sim_case_prob = create_gwas_case_prob(genotype_data, is_non_null,
+                                                    causal_snp_i, causal_or, case_rate);
+  sim_gwas_results =  simulate_gene_gwas_data(genotype_data, sim_case_prob);
 
   arma::vec sim_pvals = sim_gwas_results.col(3);
   arma::vec sim_zstats = sim_gwas_results.col(2);
@@ -799,13 +813,13 @@ arma::mat fixed_cor_gene_test_sim(arma::mat genotype_data,
 
   // Intialize the simulation results matrix:
   arma::mat sim_gene_tests(n_gene_sims, 20); // TEMPORARY STORE 20 COLS
+  arma::vec sim_case_prob = create_gwas_case_prob(genotype_data, is_non_null,
+                                                  causal_snp_i, causal_or, case_rate);
   # pragma omp parallel for
   for (int i = 0; i < n_gene_sims; i++) {
 
     // Generate the GWAS results:
-    arma::mat sim_gwas_data =  simulate_gene_gwas_data(genotype_data,
-                                                       is_non_null, causal_snp_i,
-                                                       causal_or, case_rate);
+    arma::mat sim_gwas_data = simulate_gene_gwas_data(genotype_data, sim_case_prob);
     sim_gene_tests.row(i) = compute_fixed_gene_level_test(sim_gwas_data,
                                                           sim_truth_matrix,
                                                           genotype_cor_matrix);
