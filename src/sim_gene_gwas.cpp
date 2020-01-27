@@ -1,95 +1,56 @@
-#include <RcppEnsmallen.h>
+#include <RcppArmadillo.h>
 #include <RcppArmadilloExtensions/sample.h>
 #include <omp.h>
 // [[Rcpp::plugins(openmp)]]
 // [[Rcpp::plugins("cpp11")]]
 
-// [[Rcpp::depends(RcppEnsmallen)]]
+// [[Rcpp::depends(RcppArmadillo)]]
 
 using namespace Rcpp;
 
-// Define a differentiable objective function by implementing both Evaluate()
-// and Gradient() separately.
-class LogisticRegressionFunction
-{
-public:
-  // Construct the object with the given the design
-  // matrix and responses.
-  LogisticRegressionFunction(const arma::mat& X,
-                             const arma::vec& y) :
-  X(X), y(y) { }
-
-  // Return the objective function for model parameters beta.
-  double Evaluate(const arma::mat& beta)
-  {
-
-    // Negative log likelihood
-    //   sum(log(1 + exp(X * beta))) - y' * X * beta
-
-    arma::vec xbeta = X * beta;
-    double yxbeta = dot(y, xbeta);
-    // X * beta => exp(X * beta)
-    arma::vec exp_xbeta_1 = exp(xbeta) + 1.0;
-    return sum(log(exp_xbeta_1)) - yxbeta;
-  }
-
-  // Compute the gradient for model parameters beta
-  void Gradient(const arma::mat& beta, arma::mat& g)
-  {
-
-    // Gradient
-    //   X' * (p - y), p = exp(X * beta) / (1 + exp(X * beta))
-
-    // exp(X * beta) => p
-    arma::vec exp_xbeta = exp(X * beta);
-    exp_xbeta /= (exp_xbeta + 1.0);
-    g = X.t() * (exp_xbeta - y);
-  }
-
-private:
-  // The design matrix.
-  const arma::mat& X;
-  // The responses to each data point.
-  const arma::vec& y;
-};
-
-
+//  Iteratively Re-Weighted Least Squares logistic regression
+//' @rdname logit_irwls_fit
+//' @export
 // [[Rcpp::export]]
-arma::mat logit_reg_lbfgs(const arma::mat& X, const arma::vec& y) {
+arma::mat logit_irwls_fit(arma::mat X, arma::vec y,
+                          int max_it = 25, double tol = 1e-08) {
+  const int n_cols = X.n_cols;
+  const int n_rows = X.n_rows;
+  arma::mat Q, R;
+  arma::colvec s = arma::zeros<arma::colvec>(n_cols);
+  arma::colvec s_old;
+  arma::colvec eta = arma::zeros<arma::colvec>(n_rows);
+  arma::qr_econ(Q, R, X);
+  for (int i = 0; i < max_it; i++) {
+    s_old = s;
+    const arma::colvec mu = (arma::exp(eta) / (1.0 + arma::exp(eta)));
+    const arma::colvec mu_p = arma::exp(eta) / arma::square(arma::exp(eta) + 1.0);
+    const arma::colvec z = eta + (y - mu) / mu_p;
+    const arma::colvec variance = mu % (1.0 - mu);
+    const arma::colvec W = arma::square(mu_p) / variance;
+    const arma::mat C = arma::chol(Q.t() * (Q.each_col() % W));
+    const arma::colvec s1 = arma::solve(arma::trimatl(C.t()), Q.t() * (W % z));
+    s = arma::solve(arma::trimatu(C), s1);
+    eta = Q * s;
 
-  // Construct the first objective function.
-  LogisticRegressionFunction lrf(X, y);
-
-  // Create the L_BFGS optimizer with default parameters.
-  // The ens::L_BFGS type can be replaced with any ensmallen optimizer that can
-  // handle differentiable functions.
-  ens::L_BFGS lbfgs;
-
-  lbfgs.MaxIterations() = 10;
-
-  // Create a starting point for our optimization randomly.
-  // The model has p parameters, so the shape is p x 1.
-  arma::mat beta(X.n_cols, 1, arma::fill::zeros);
-
-  // Run the optimization
-  lbfgs.Optimize(lrf, beta);
-
-  // Compute the Hessian matrix with the final beta values:
-  // exp(X * beta) => p
-  arma::vec exp_xbeta = exp(X * beta);
-  arma::vec pred_p = exp_xbeta / (1.0  + exp_xbeta);
-  arma::mat diag_w = diagmat(pred_p % (1.0 - pred_p));
-  arma::mat info_mat = inv(X.t() * diag_w * X);
+    const bool is_converged = std::sqrt(arma::accu(arma::square(s - s_old))) < tol;
+    if (is_converged) break;
+  }
+  arma::mat beta = arma::solve(arma::trimatu(R), Q.t() * eta);
+  arma::vec exp_xbeta = arma::exp(X * beta);
+  arma::colvec mu = (exp_xbeta / (1.0 + exp_xbeta));
+  //arma::colvec mu_p = exp_xbeta / arma::square(exp_xbeta + 1.0);
+  arma::colvec variance = mu % (1.0 - mu);
+  arma::colvec W = variance;
+  arma::mat info_mat = arma::inv(X.t() * (X.each_col() % W));
   // Get the standard errors:
   arma::vec beta_se = sqrt(info_mat.diag());
   // Compute the z-scores:
   arma::vec z_scores = beta / beta_se;
   // Compute the two-sided p-values:
   arma::vec pvals = 2 * normcdf(-1 * abs(z_scores));
-
   arma::mat final_results = join_rows(beta, beta_se,
                                       z_scores, pvals);
-
   return final_results;
 }
 
@@ -107,6 +68,7 @@ arma::mat resample_genotype_data(arma::mat genotype_data,
 
   arma::uvec row_indices = arma::linspace<arma::uvec>(0, n_subjects - 1, n_subjects);
   arma::uvec resample_rows_i = Rcpp::RcppArmadillo::sample(row_indices, n_resamples, true);
+  //arma::uvec resample_rows_i = floor(Rcpp::runif(n_subjects, 0, n_subjects));
   sim_genotype_data = genotype_data.rows(resample_rows_i);
 
   return sim_genotype_data;
@@ -178,8 +140,7 @@ arma::mat simulate_gene_gwas_data(arma::mat genotype_data,
   // each subject:
   // Generate the vector of coin toss results:
   arma::vec case_status(n_subjects);
-  int subject_i;
-  for (subject_i = 0; subject_i < n_subjects; subject_i++) {
+  for (int subject_i = 0; subject_i < n_subjects; subject_i++) {
     case_status[subject_i] = R::rbinom(1, case_prob[subject_i]);
   }
 
@@ -189,7 +150,7 @@ arma::mat simulate_gene_gwas_data(arma::mat genotype_data,
   arma::mat snp_results;
   int j;
   for (j = 0; j < n_snps; j++) {
-    snp_results = logit_reg_lbfgs(arma::join_horiz(design_mat, genotype_data.col(j)), case_status);
+    snp_results = logit_irwls_fit(arma::join_horiz(design_mat, genotype_data.col(j)), case_status);
     sim_gwas.row(j) = snp_results.row(1); // Ignore's the intercept row
   }
 
@@ -630,6 +591,7 @@ arma::mat simulate_gene_level_stats(arma::mat init_genotype_data,
                                   double causal_or,
                                   double case_rate,
                                   int sim_n_blocks, int sim_block_size,
+                                  int n_cores,
                                   double eps) {
 
   arma::mat genotype_data;
@@ -860,10 +822,6 @@ arma::mat resample_gene_test_sim(arma::mat genotype_data,
                                                        truth_sim_n_blocks,
                                                        truth_sim_block_size,
                                                        eps);
-  // Initialize the sim truth vectors to pass into the function for computing
-  // the simulation based p-values:
-  arma::vec truth_sim_pvals = sim_truth_matrix.col(0);
-  arma::vec truth_sim_zstats = sim_truth_matrix.col(1);
 
   // Intialize the simulation results matrix:
   arma::mat sim_gene_tests(n_gene_sims, 20); // TEMPORARY STORE 20 COLS

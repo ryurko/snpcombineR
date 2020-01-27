@@ -2,20 +2,21 @@
 // Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #include <RcppArmadillo.h>
-#include <RcppEnsmallen.h>
 #include <Rcpp.h>
 
 using namespace Rcpp;
 
-// logit_reg_lbfgs
-arma::mat logit_reg_lbfgs(const arma::mat& X, const arma::vec& y);
-RcppExport SEXP _snpcombineR_logit_reg_lbfgs(SEXP XSEXP, SEXP ySEXP) {
+// logit_irwls_fit
+arma::mat logit_irwls_fit(arma::mat X, arma::vec y, int max_it, double tol);
+RcppExport SEXP _snpcombineR_logit_irwls_fit(SEXP XSEXP, SEXP ySEXP, SEXP max_itSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(logit_reg_lbfgs(X, y));
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(logit_irwls_fit(X, y, max_it, tol));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -210,8 +211,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // simulate_gene_level_stats
-arma::mat simulate_gene_level_stats(arma::mat init_genotype_data, bool resample, int n_resamples, bool is_non_null, arma::uvec causal_snp_i, double causal_or, double case_rate, int sim_n_blocks, int sim_block_size, double eps);
-RcppExport SEXP _snpcombineR_simulate_gene_level_stats(SEXP init_genotype_dataSEXP, SEXP resampleSEXP, SEXP n_resamplesSEXP, SEXP is_non_nullSEXP, SEXP causal_snp_iSEXP, SEXP causal_orSEXP, SEXP case_rateSEXP, SEXP sim_n_blocksSEXP, SEXP sim_block_sizeSEXP, SEXP epsSEXP) {
+arma::mat simulate_gene_level_stats(arma::mat init_genotype_data, bool resample, int n_resamples, bool is_non_null, arma::uvec causal_snp_i, double causal_or, double case_rate, int sim_n_blocks, int sim_block_size, int n_cores, double eps);
+RcppExport SEXP _snpcombineR_simulate_gene_level_stats(SEXP init_genotype_dataSEXP, SEXP resampleSEXP, SEXP n_resamplesSEXP, SEXP is_non_nullSEXP, SEXP causal_snp_iSEXP, SEXP causal_orSEXP, SEXP case_rateSEXP, SEXP sim_n_blocksSEXP, SEXP sim_block_sizeSEXP, SEXP n_coresSEXP, SEXP epsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -224,8 +225,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type case_rate(case_rateSEXP);
     Rcpp::traits::input_parameter< int >::type sim_n_blocks(sim_n_blocksSEXP);
     Rcpp::traits::input_parameter< int >::type sim_block_size(sim_block_sizeSEXP);
+    Rcpp::traits::input_parameter< int >::type n_cores(n_coresSEXP);
     Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulate_gene_level_stats(init_genotype_data, resample, n_resamples, is_non_null, causal_snp_i, causal_or, case_rate, sim_n_blocks, sim_block_size, eps));
+    rcpp_result_gen = Rcpp::wrap(simulate_gene_level_stats(init_genotype_data, resample, n_resamples, is_non_null, causal_snp_i, causal_or, case_rate, sim_n_blocks, sim_block_size, n_cores, eps));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -313,7 +315,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_snpcombineR_logit_reg_lbfgs", (DL_FUNC) &_snpcombineR_logit_reg_lbfgs, 2},
+    {"_snpcombineR_logit_irwls_fit", (DL_FUNC) &_snpcombineR_logit_irwls_fit, 4},
     {"_snpcombineR_resample_genotype_data", (DL_FUNC) &_snpcombineR_resample_genotype_data, 2},
     {"_snpcombineR_create_gwas_case_prob", (DL_FUNC) &_snpcombineR_create_gwas_case_prob, 5},
     {"_snpcombineR_simulate_gene_gwas_data", (DL_FUNC) &_snpcombineR_simulate_gene_gwas_data, 2},
@@ -329,7 +331,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_snpcombineR_compute_browns", (DL_FUNC) &_snpcombineR_compute_browns, 3},
     {"_snpcombineR_compute_sim_pvals", (DL_FUNC) &_snpcombineR_compute_sim_pvals, 6},
     {"_snpcombineR_compute_gene_level_test", (DL_FUNC) &_snpcombineR_compute_gene_level_test, 6},
-    {"_snpcombineR_simulate_gene_level_stats", (DL_FUNC) &_snpcombineR_simulate_gene_level_stats, 10},
+    {"_snpcombineR_simulate_gene_level_stats", (DL_FUNC) &_snpcombineR_simulate_gene_level_stats, 11},
     {"_snpcombineR_generate_sim_truth_data", (DL_FUNC) &_snpcombineR_generate_sim_truth_data, 4},
     {"_snpcombineR_compute_fixed_sim_pvals", (DL_FUNC) &_snpcombineR_compute_fixed_sim_pvals, 3},
     {"_snpcombineR_compute_fixed_gene_level_test", (DL_FUNC) &_snpcombineR_compute_fixed_gene_level_test, 3},
