@@ -843,3 +843,53 @@ arma::mat resample_gene_test_sim(arma::mat genotype_data,
 
 
 
+// Given a genotype matrix generate simulated GWAS data with provided settings
+//' @rdname resample_cor_gene_test_sim
+//' @export
+// [[Rcpp::export]]
+arma::mat resample_cor_gene_test_sim(arma::mat genotype_data,
+                                 int n_resamples,
+                                 int n_gene_sims,
+                                 bool is_non_null,
+                                 arma::uvec causal_snp_i,
+                                 double causal_or,
+                                 double case_rate,
+                                 int truth_sim_n_blocks,
+                                 int truth_sim_block_size,
+                                 int n_cores,
+                                 double eps) {
+
+  omp_set_num_threads(n_cores);
+  // Intialize the simulation results matrix:
+  arma::mat sim_gene_tests(n_gene_sims, 20); // TEMPORARY STORE 20 COLS
+
+  # pragma omp parallel for
+  for (int i = 0; i < n_gene_sims; i++) {
+
+    arma::mat sim_genotype_data = resample_genotype_data(genotype_data, n_resamples);
+
+    // First compute the correlation matrix of the genotype data using the wrapper
+    // for the Armadillo correlation function:
+    arma::mat genotype_cor_matrix = compute_cor_matrix(sim_genotype_data);
+
+    // Generate the matrix of z-stats and p-values to use for computing the
+    // simulated truth p-values:
+    arma::mat sim_truth_matrix = generate_sim_truth_data(genotype_cor_matrix,
+                                                       truth_sim_n_blocks,
+                                                       truth_sim_block_size,
+                                                       eps);
+
+
+    arma::vec sim_case_prob = create_gwas_case_prob(sim_genotype_data, is_non_null,
+                                                      causal_snp_i, causal_or, case_rate);
+
+    // Generate the GWAS results:
+    arma::mat sim_gwas_data = simulate_gene_gwas_data(sim_genotype_data, sim_case_prob);
+    sim_gene_tests.row(i) = compute_fixed_gene_level_test(sim_gwas_data,
+                       sim_truth_matrix,
+                       genotype_cor_matrix);
+  }
+  // Return the final matrix of results
+  return sim_gene_tests;
+
+}

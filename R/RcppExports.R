@@ -133,3 +133,9 @@ resample_gene_test_sim <- function(genotype_data, n_resamples, n_gene_sims, is_n
     .Call(`_snpcombineR_resample_gene_test_sim`, genotype_data, n_resamples, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, truth_sim_n_blocks, truth_sim_block_size, n_cores, eps)
 }
 
+#' @rdname resample_cor_gene_test_sim
+#' @export
+resample_cor_gene_test_sim <- function(genotype_data, n_resamples, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, truth_sim_n_blocks, truth_sim_block_size, n_cores, eps) {
+    .Call(`_snpcombineR_resample_cor_gene_test_sim`, genotype_data, n_resamples, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, truth_sim_n_blocks, truth_sim_block_size, n_cores, eps)
+}
+
