@@ -893,3 +893,38 @@ arma::mat resample_cor_gene_test_sim(arma::mat genotype_data,
   return sim_gene_tests;
 
 }
+
+
+// Given a genotype matrix with correlation and MC stats generate GWAS sims
+//' @rdname sim_gene_cor_gwas_gene
+//' @export
+// [[Rcpp::export]]
+arma::mat sim_gene_cor_gwas_gene(arma::mat genotype_data,
+                                  arma::mat genotype_cor_matrix,
+                                  arma::mat sim_truth_matrix,
+                                  int n_gene_sims,
+                                  bool is_non_null,
+                                  arma::uvec causal_snp_i,
+                                  double causal_or,
+                                  double case_rate,
+                                  int n_cores) {
+
+  omp_set_num_threads(n_cores);
+
+  // Intialize the simulation results matrix:
+  arma::mat sim_gene_tests(n_gene_sims, 20); // TEMPORARY STORE 20 COLS
+  arma::vec sim_case_prob = create_gwas_case_prob(genotype_data, is_non_null,
+                                                  causal_snp_i, causal_or, case_rate);
+  # pragma omp parallel for
+  for (int i = 0; i < n_gene_sims; i++) {
+
+    // Generate the GWAS results:
+    arma::mat sim_gwas_data = simulate_gene_gwas_data(genotype_data, sim_case_prob);
+    sim_gene_tests.row(i) = compute_fixed_gene_level_test(sim_gwas_data,
+                       sim_truth_matrix,
+                       genotype_cor_matrix);
+  }
+  // Return the final matrix of results
+  return sim_gene_tests;
+
+}

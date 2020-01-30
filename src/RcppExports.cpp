@@ -334,6 +334,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sim_gene_cor_gwas_gene
+arma::mat sim_gene_cor_gwas_gene(arma::mat genotype_data, arma::mat genotype_cor_matrix, arma::mat sim_truth_matrix, int n_gene_sims, bool is_non_null, arma::uvec causal_snp_i, double causal_or, double case_rate, int n_cores);
+RcppExport SEXP _snpcombineR_sim_gene_cor_gwas_gene(SEXP genotype_dataSEXP, SEXP genotype_cor_matrixSEXP, SEXP sim_truth_matrixSEXP, SEXP n_gene_simsSEXP, SEXP is_non_nullSEXP, SEXP causal_snp_iSEXP, SEXP causal_orSEXP, SEXP case_rateSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type genotype_data(genotype_dataSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type genotype_cor_matrix(genotype_cor_matrixSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type sim_truth_matrix(sim_truth_matrixSEXP);
+    Rcpp::traits::input_parameter< int >::type n_gene_sims(n_gene_simsSEXP);
+    Rcpp::traits::input_parameter< bool >::type is_non_null(is_non_nullSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type causal_snp_i(causal_snp_iSEXP);
+    Rcpp::traits::input_parameter< double >::type causal_or(causal_orSEXP);
+    Rcpp::traits::input_parameter< double >::type case_rate(case_rateSEXP);
+    Rcpp::traits::input_parameter< int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(sim_gene_cor_gwas_gene(genotype_data, genotype_cor_matrix, sim_truth_matrix, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_snpcombineR_logit_irwls_fit", (DL_FUNC) &_snpcombineR_logit_irwls_fit, 4},
@@ -359,6 +378,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_snpcombineR_fixed_cor_gene_test_sim", (DL_FUNC) &_snpcombineR_fixed_cor_gene_test_sim, 11},
     {"_snpcombineR_resample_gene_test_sim", (DL_FUNC) &_snpcombineR_resample_gene_test_sim, 11},
     {"_snpcombineR_resample_cor_gene_test_sim", (DL_FUNC) &_snpcombineR_resample_cor_gene_test_sim, 11},
+    {"_snpcombineR_sim_gene_cor_gwas_gene", (DL_FUNC) &_snpcombineR_sim_gene_cor_gwas_gene, 9},
     {NULL, NULL, 0}
 };
 
