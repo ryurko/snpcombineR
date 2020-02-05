@@ -59,6 +59,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// compute_sample_cor_matrix
+arma::mat compute_sample_cor_matrix(arma::mat X);
+RcppExport SEXP _snpcombineR_compute_sample_cor_matrix(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_sample_cor_matrix(X));
+    return rcpp_result_gen;
+END_RCPP
+}
 // compute_cor_matrix
 arma::mat compute_cor_matrix(arma::mat X);
 RcppExport SEXP _snpcombineR_compute_cor_matrix(SEXP XSEXP) {
@@ -67,6 +78,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
     rcpp_result_gen = Rcpp::wrap(compute_cor_matrix(X));
+    return rcpp_result_gen;
+END_RCPP
+}
+// return_svd_decomp
+Rcpp::List return_svd_decomp(arma::mat X);
+RcppExport SEXP _snpcombineR_return_svd_decomp(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(return_svd_decomp(X));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -231,6 +253,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// generate_fixed_svd_sim_truth_data
+arma::mat generate_fixed_svd_sim_truth_data(arma::mat V, arma::vec s, int n_blocks, int block_size, double eps);
+RcppExport SEXP _snpcombineR_generate_fixed_svd_sim_truth_data(SEXP VSEXP, SEXP sSEXP, SEXP n_blocksSEXP, SEXP block_sizeSEXP, SEXP epsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type V(VSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
+    Rcpp::traits::input_parameter< int >::type n_blocks(n_blocksSEXP);
+    Rcpp::traits::input_parameter< int >::type block_size(block_sizeSEXP);
+    Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
+    rcpp_result_gen = Rcpp::wrap(generate_fixed_svd_sim_truth_data(V, s, n_blocks, block_size, eps));
+    return rcpp_result_gen;
+END_RCPP
+}
 // generate_sim_truth_data
 arma::mat generate_sim_truth_data(arma::mat genotype_cor_matrix, int n_blocks, int block_size, double eps);
 RcppExport SEXP _snpcombineR_generate_sim_truth_data(SEXP genotype_cor_matrixSEXP, SEXP n_blocksSEXP, SEXP block_sizeSEXP, SEXP epsSEXP) {
@@ -334,6 +371,42 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// generate_resample_svd_truth_data
+arma::mat generate_resample_svd_truth_data(arma::mat genotype_data, arma::mat U, arma::vec s, arma::mat V, int n_blocks, int block_size);
+RcppExport SEXP _snpcombineR_generate_resample_svd_truth_data(SEXP genotype_dataSEXP, SEXP USEXP, SEXP sSEXP, SEXP VSEXP, SEXP n_blocksSEXP, SEXP block_sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type genotype_data(genotype_dataSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type U(USEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type V(VSEXP);
+    Rcpp::traits::input_parameter< int >::type n_blocks(n_blocksSEXP);
+    Rcpp::traits::input_parameter< int >::type block_size(block_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(generate_resample_svd_truth_data(genotype_data, U, s, V, n_blocks, block_size));
+    return rcpp_result_gen;
+END_RCPP
+}
+// resample_svd_gene_test_sim
+arma::mat resample_svd_gene_test_sim(arma::mat genotype_data, int n_resamples, int n_gene_sims, bool is_non_null, arma::uvec causal_snp_i, double causal_or, double case_rate, int truth_sim_n_blocks, int truth_sim_block_size, int n_cores);
+RcppExport SEXP _snpcombineR_resample_svd_gene_test_sim(SEXP genotype_dataSEXP, SEXP n_resamplesSEXP, SEXP n_gene_simsSEXP, SEXP is_non_nullSEXP, SEXP causal_snp_iSEXP, SEXP causal_orSEXP, SEXP case_rateSEXP, SEXP truth_sim_n_blocksSEXP, SEXP truth_sim_block_sizeSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type genotype_data(genotype_dataSEXP);
+    Rcpp::traits::input_parameter< int >::type n_resamples(n_resamplesSEXP);
+    Rcpp::traits::input_parameter< int >::type n_gene_sims(n_gene_simsSEXP);
+    Rcpp::traits::input_parameter< bool >::type is_non_null(is_non_nullSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type causal_snp_i(causal_snp_iSEXP);
+    Rcpp::traits::input_parameter< double >::type causal_or(causal_orSEXP);
+    Rcpp::traits::input_parameter< double >::type case_rate(case_rateSEXP);
+    Rcpp::traits::input_parameter< int >::type truth_sim_n_blocks(truth_sim_n_blocksSEXP);
+    Rcpp::traits::input_parameter< int >::type truth_sim_block_size(truth_sim_block_sizeSEXP);
+    Rcpp::traits::input_parameter< int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(resample_svd_gene_test_sim(genotype_data, n_resamples, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, truth_sim_n_blocks, truth_sim_block_size, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sim_gene_cor_gwas_gene
 arma::mat sim_gene_cor_gwas_gene(arma::mat genotype_data, arma::mat genotype_cor_matrix, arma::mat sim_truth_matrix, int n_gene_sims, bool is_non_null, arma::uvec causal_snp_i, double causal_or, double case_rate, int n_cores);
 RcppExport SEXP _snpcombineR_sim_gene_cor_gwas_gene(SEXP genotype_dataSEXP, SEXP genotype_cor_matrixSEXP, SEXP sim_truth_matrixSEXP, SEXP n_gene_simsSEXP, SEXP is_non_nullSEXP, SEXP causal_snp_iSEXP, SEXP causal_orSEXP, SEXP case_rateSEXP, SEXP n_coresSEXP) {
@@ -359,7 +432,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_snpcombineR_resample_genotype_data", (DL_FUNC) &_snpcombineR_resample_genotype_data, 2},
     {"_snpcombineR_create_gwas_case_prob", (DL_FUNC) &_snpcombineR_create_gwas_case_prob, 5},
     {"_snpcombineR_simulate_gene_gwas_data", (DL_FUNC) &_snpcombineR_simulate_gene_gwas_data, 2},
+    {"_snpcombineR_compute_sample_cor_matrix", (DL_FUNC) &_snpcombineR_compute_sample_cor_matrix, 1},
     {"_snpcombineR_compute_cor_matrix", (DL_FUNC) &_snpcombineR_compute_cor_matrix, 1},
+    {"_snpcombineR_return_svd_decomp", (DL_FUNC) &_snpcombineR_return_svd_decomp, 1},
     {"_snpcombineR_compute_chol_matrix", (DL_FUNC) &_snpcombineR_compute_chol_matrix, 1},
     {"_snpcombineR_check_is_pd_cor_matrix", (DL_FUNC) &_snpcombineR_check_is_pd_cor_matrix, 2},
     {"_snpcombineR_make_pd_cor_matrix", (DL_FUNC) &_snpcombineR_make_pd_cor_matrix, 4},
@@ -372,12 +447,15 @@ static const R_CallMethodDef CallEntries[] = {
     {"_snpcombineR_compute_sim_pvals", (DL_FUNC) &_snpcombineR_compute_sim_pvals, 6},
     {"_snpcombineR_compute_gene_level_test", (DL_FUNC) &_snpcombineR_compute_gene_level_test, 6},
     {"_snpcombineR_simulate_gene_level_stats", (DL_FUNC) &_snpcombineR_simulate_gene_level_stats, 11},
+    {"_snpcombineR_generate_fixed_svd_sim_truth_data", (DL_FUNC) &_snpcombineR_generate_fixed_svd_sim_truth_data, 5},
     {"_snpcombineR_generate_sim_truth_data", (DL_FUNC) &_snpcombineR_generate_sim_truth_data, 4},
     {"_snpcombineR_compute_fixed_sim_pvals", (DL_FUNC) &_snpcombineR_compute_fixed_sim_pvals, 3},
     {"_snpcombineR_compute_fixed_gene_level_test", (DL_FUNC) &_snpcombineR_compute_fixed_gene_level_test, 3},
     {"_snpcombineR_fixed_cor_gene_test_sim", (DL_FUNC) &_snpcombineR_fixed_cor_gene_test_sim, 11},
     {"_snpcombineR_resample_gene_test_sim", (DL_FUNC) &_snpcombineR_resample_gene_test_sim, 11},
     {"_snpcombineR_resample_cor_gene_test_sim", (DL_FUNC) &_snpcombineR_resample_cor_gene_test_sim, 11},
+    {"_snpcombineR_generate_resample_svd_truth_data", (DL_FUNC) &_snpcombineR_generate_resample_svd_truth_data, 6},
+    {"_snpcombineR_resample_svd_gene_test_sim", (DL_FUNC) &_snpcombineR_resample_svd_gene_test_sim, 10},
     {"_snpcombineR_sim_gene_cor_gwas_gene", (DL_FUNC) &_snpcombineR_sim_gene_cor_gwas_gene, 9},
     {NULL, NULL, 0}
 };

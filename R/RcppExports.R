@@ -25,10 +25,22 @@ simulate_gene_gwas_data <- function(genotype_data, case_prob) {
     .Call(`_snpcombineR_simulate_gene_gwas_data`, genotype_data, case_prob)
 }
 
+#' @rdname compute_sample_cor_matrix
+#' @export
+compute_sample_cor_matrix <- function(X) {
+    .Call(`_snpcombineR_compute_sample_cor_matrix`, X)
+}
+
 #' @rdname compute_cor_matrix
 #' @export
 compute_cor_matrix <- function(X) {
     .Call(`_snpcombineR_compute_cor_matrix`, X)
+}
+
+#' @rdname compute_cor_matrix
+#' @export
+return_svd_decomp <- function(X) {
+    .Call(`_snpcombineR_return_svd_decomp`, X)
 }
 
 #' @rdname compute_chol_matrix
@@ -103,6 +115,12 @@ simulate_gene_level_stats <- function(init_genotype_data, resample, n_resamples,
     .Call(`_snpcombineR_simulate_gene_level_stats`, init_genotype_data, resample, n_resamples, is_non_null, causal_snp_i, causal_or, case_rate, sim_n_blocks, sim_block_size, n_cores, eps)
 }
 
+#' @rdname generate_fixed_svd_sim_truth_data
+#' @export
+generate_fixed_svd_sim_truth_data <- function(V, s, n_blocks, block_size, eps) {
+    .Call(`_snpcombineR_generate_fixed_svd_sim_truth_data`, V, s, n_blocks, block_size, eps)
+}
+
 #' @rdname generate_sim_truth_data
 #' @export
 generate_sim_truth_data <- function(genotype_cor_matrix, n_blocks, block_size, eps) {
@@ -137,6 +155,18 @@ resample_gene_test_sim <- function(genotype_data, n_resamples, n_gene_sims, is_n
 #' @export
 resample_cor_gene_test_sim <- function(genotype_data, n_resamples, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, truth_sim_n_blocks, truth_sim_block_size, n_cores, eps) {
     .Call(`_snpcombineR_resample_cor_gene_test_sim`, genotype_data, n_resamples, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, truth_sim_n_blocks, truth_sim_block_size, n_cores, eps)
+}
+
+#' @rdname generate_resample_svd_truth_data
+#' @export
+generate_resample_svd_truth_data <- function(genotype_data, U, s, V, n_blocks, block_size) {
+    .Call(`_snpcombineR_generate_resample_svd_truth_data`, genotype_data, U, s, V, n_blocks, block_size)
+}
+
+#' @rdname resample_svd_gene_test_sim
+#' @export
+resample_svd_gene_test_sim <- function(genotype_data, n_resamples, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, truth_sim_n_blocks, truth_sim_block_size, n_cores) {
+    .Call(`_snpcombineR_resample_svd_gene_test_sim`, genotype_data, n_resamples, n_gene_sims, is_non_null, causal_snp_i, causal_or, case_rate, truth_sim_n_blocks, truth_sim_block_size, n_cores)
 }
 
 #' @rdname sim_gene_cor_gwas_gene

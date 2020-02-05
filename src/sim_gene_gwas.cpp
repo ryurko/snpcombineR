@@ -160,6 +160,21 @@ arma::mat simulate_gene_gwas_data(arma::mat genotype_data,
 
 
 
+// Compute sample correlation matrix with Armadillo
+//' @rdname compute_sample_cor_matrix
+//' @export
+// [[Rcpp::export]]
+arma::mat compute_sample_cor_matrix(arma::mat X) {
+  int ncols = X.n_cols;
+
+  // Initialize the correlation matrix
+  arma::mat cor_matrix(ncols, ncols);
+
+  // Calculate it:
+  cor_matrix = arma::cor(X, 0);
+  return cor_matrix;
+}
+
 // Compute correlation matrix with Armadillo
 //' @rdname compute_cor_matrix
 //' @export
@@ -171,8 +186,27 @@ arma::mat compute_cor_matrix(arma::mat X) {
   arma::mat cor_matrix(ncols, ncols);
 
   // Calculate it:
-  cor_matrix = arma::cor(X, 0);
+  cor_matrix = arma::cor(X, 1);
   return cor_matrix;
+}
+
+// Return list of SVD decomposition of a matrix
+//' @rdname compute_cor_matrix
+//' @export
+// [[Rcpp::export]]
+Rcpp::List return_svd_decomp(arma::mat X) {
+
+  // Initialize the SVD components:
+  arma::mat U;
+  arma::vec s; // vector of singular values
+  arma::mat V;
+
+  // Generate the SVD results using the divide and conquer approach:
+  arma::svd_econ(U, s, V, X, "both", "dc");
+
+  return Rcpp::List::create(Rcpp::Named("V")=V,
+                            Rcpp::Named("s")=s,
+                            Rcpp::Named("U") = U);
 }
 
 // Compute cholesky matrix with Armadillo
@@ -617,6 +651,54 @@ arma::mat simulate_gene_level_stats(arma::mat init_genotype_data,
 
 }
 
+// Generate simulated truth data using SVD decomposition (without resampling)
+//' @rdname generate_fixed_svd_sim_truth_data
+//' @export
+// [[Rcpp::export]]
+arma::mat generate_fixed_svd_sim_truth_data(arma::mat V,
+                                      arma::vec s,
+                                      int n_blocks,
+                                      int block_size,
+                                      double eps) {
+
+  int n_snps = V.n_cols;
+
+  // Construct the A matrix used to correlate data:
+  arma::mat A = V * arma::sqrt(arma::diagmat(s));
+
+  // Initialize the matrix to hold the VEGAS and Fisher test statistics
+  // for the given number of simulations and blocks:
+  arma::mat vegas_data(n_blocks * block_size, 1);
+  arma::mat fisher_data(n_blocks * block_size, 1);
+
+  // Now loop through the number of blocks to generate the simulations for the
+  // test statistics:
+  for (int i = 0; i < n_blocks; i++) {
+    // Generate the uncorrelated Gaussian data:
+    arma::mat Y = arma::randn(block_size, n_snps);
+    // Generate the z-statistics:
+    arma::mat sim_data = trans(A * Y.t());
+
+    // Compute and assign the squared versions of the z-statistics:
+    vegas_data.rows(i * block_size,
+                    i * block_size + (block_size - 1)) = arma::sum(square(sim_data), 1);
+
+    // Compute the Fisher test statistics - just the log transformation of the
+    // two-sided p-value for now:
+    // Need to first take the negative of each z-statistic:
+    arma::mat trans_data = -1 * abs(sim_data);
+    // Now compute the fisher statistics:
+    arma::mat pval_data = 2 * normcdf(trans_data);
+    fisher_data.rows(i * block_size,
+                     i * block_size + (block_size - 1)) = -2 * arma::sum(log(pval_data), 1);
+
+  }
+
+  arma::mat sim_truth_test_data = arma::join_horiz(vegas_data, fisher_data);
+
+  return sim_truth_test_data;
+}
+
 
 // Generate simulated truth data using Armadillo
 //' @rdname generate_sim_truth_data
@@ -895,6 +977,136 @@ arma::mat resample_cor_gene_test_sim(arma::mat genotype_data,
 }
 
 
+// Given a genotype matrix generate simulated GWAS data with provided settings
+//' @rdname generate_resample_svd_truth_data
+//' @export
+// [[Rcpp::export]]
+arma::mat generate_resample_svd_truth_data(arma::mat genotype_data,
+                                                 arma::mat U,
+                                                 arma::vec s,
+                                                 arma::mat V,
+                                                 int n_blocks,
+                                                 int block_size) {
+
+  double n_obs = genotype_data.n_rows;
+  double n_sqrt_div = 1.0 / sqrt(n_obs);
+
+  // Compute the inverse standard deviation for each column of the genotype data:
+  arma::mat genotype_sd = arma::diagmat(arma::stddev(genotype_data, 1, 0));
+
+  // Compute the column means:
+  arma::rowvec U_means = arma::mean(U, 0);
+
+  // Center the U matrix
+  U.each_row() -= U_means;
+
+  // Create the A matrix to use for the multiplication:
+  arma::mat A = n_sqrt_div * genotype_sd.i() * V * arma::diagmat(s) * U.t();
+
+  // Initialize the matrix to hold the VEGAS and Fisher test statistics
+  // for the given number of simulations and blocks:
+  arma::mat vegas_data(n_blocks * block_size, 1);
+  arma::mat fisher_data(n_blocks * block_size, 1);
+
+  // Now loop through the number of blocks to generate the simulations for the
+  // test statistics:
+  for (int i = 0; i < n_blocks; i++) {
+    // Generate the uncorrelated Gaussian data:
+    arma::mat Y = arma::randn(block_size, genotype_data.n_rows);
+    // Generate the z-statistics:
+    arma::mat sim_data = trans(A * Y.t());
+
+    // Compute and assign the squared versions of the z-statistics:
+    vegas_data.rows(i * block_size,
+                    i * block_size + (block_size - 1)) = arma::sum(square(sim_data), 1);
+
+    // Compute the Fisher test statistics - just the log transformation of the
+    // two-sided p-value for now:
+    // Need to first take the negative of each z-statistic:
+    arma::mat trans_data = -1 * abs(sim_data);
+    // Now compute the fisher statistics:
+    arma::mat pval_data = 2 * normcdf(trans_data);
+    fisher_data.rows(i * block_size,
+                     i * block_size + (block_size - 1)) = -2 * arma::sum(log(pval_data), 1);
+
+  }
+
+  arma::mat sim_truth_test_data = arma::join_horiz(vegas_data, fisher_data);
+
+  return sim_truth_test_data;
+}
+
+
+
+// Given a genotype matrix generate simulated GWAS data with provided settings
+//' @rdname resample_svd_gene_test_sim
+//' @export
+// [[Rcpp::export]]
+arma::mat resample_svd_gene_test_sim(arma::mat genotype_data,
+                                     int n_resamples,
+                                     int n_gene_sims,
+                                     bool is_non_null,
+                                     arma::uvec causal_snp_i,
+                                     double causal_or,
+                                     double case_rate,
+                                     int truth_sim_n_blocks,
+                                     int truth_sim_block_size,
+                                     int n_cores) {
+
+  omp_set_num_threads(n_cores);
+  // Intialize the simulation results matrix:
+  arma::mat sim_gene_tests(n_gene_sims, 20); // TEMPORARY STORE 20 COLS
+
+  int n_subjects = genotype_data.n_rows;
+  // Initialize the resampling indices:
+  arma::uvec row_indices = arma::linspace<arma::uvec>(0, n_subjects - 1, n_subjects);
+  arma::uvec resample_rows_i;
+  arma::mat sim_genotype_data;
+
+  // Generate the initial SVD results using the genotype matrix:
+  arma::mat geno_U;
+  arma::vec geno_s; // vector of singular values
+  arma::mat geno_V;
+  arma::svd_econ(geno_U, geno_s, geno_V, genotype_data, "both", "dc");
+  arma::mat resample_U;
+  arma::mat sim_truth_matrix;
+
+  # pragma omp parallel for
+  for (int i = 0; i < n_gene_sims; i++) {
+
+    resample_rows_i = Rcpp::RcppArmadillo::sample(row_indices, n_resamples, true);
+    sim_genotype_data = genotype_data.rows(resample_rows_i);
+    resample_U = geno_U.rows(resample_rows_i);
+
+    // First compute the correlation matrix of the genotype data using the wrapper
+    // for the Armadillo correlation function:
+    arma::mat genotype_cor_matrix = compute_cor_matrix(sim_genotype_data);
+
+    // Next generate the matrix of z-stats and p-values to use for computing
+    // the simulated truth p-values given the resampled data and using the
+    // svd shortcut:
+    sim_truth_matrix = generate_resample_svd_truth_data(sim_genotype_data,
+                                                        resample_U,
+                                                        geno_s,
+                                                        geno_V,
+                                                        truth_sim_n_blocks,
+                                                        truth_sim_block_size);
+
+    arma::vec sim_case_prob = create_gwas_case_prob(sim_genotype_data, is_non_null,
+                                                    causal_snp_i, causal_or, case_rate);
+
+    // Generate the GWAS results:
+    arma::mat sim_gwas_data = simulate_gene_gwas_data(sim_genotype_data, sim_case_prob);
+    sim_gene_tests.row(i) = compute_fixed_gene_level_test(sim_gwas_data,
+                       sim_truth_matrix,
+                       genotype_cor_matrix);
+  }
+  // Return the final matrix of results
+  return sim_gene_tests;
+
+}
+
+
 // Given a genotype matrix with correlation and MC stats generate GWAS sims
 //' @rdname sim_gene_cor_gwas_gene
 //' @export
@@ -928,3 +1140,4 @@ arma::mat sim_gene_cor_gwas_gene(arma::mat genotype_data,
   return sim_gene_tests;
 
 }
+
