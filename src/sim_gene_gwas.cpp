@@ -379,7 +379,9 @@ double compute_two_sided_cov_sum(arma::mat genotype_cor_mat) {
 
   for (int i = 0; i < n_snps; i++) {
     for (int j = i+1 ; j < n_snps; j++) {
-      cov_sum += 4 * pow(genotype_cor_mat(i,j), 2);
+      //cov_sum += 4 * pow(genotype_cor_mat(i,j), 2);
+      // Using Yang 2016 10th order polynomial for now
+      cov_sum += 3.9081 * pow(genotype_cor_mat(i,j), 2) + 0.0313 * pow(genotype_cor_mat(i,j), 4) + 0.1022 * pow(genotype_cor_mat(i,j), 6) - 0.1378 * pow(genotype_cor_mat(i,j), 8) + 0.0941 * pow(genotype_cor_mat(i,j), 10);
     }
   }
   cov_sum *= 2;
