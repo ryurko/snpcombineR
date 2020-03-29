@@ -1,12 +1,14 @@
 Package: snpcombineR
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Library for Simulating and Combining GWAS SNP Summary Statistics with Rcpp
 Version: 0.1.0
 Author: Ron Yurko
 Maintainer: Ron Yurko <ryurko@andrew.cmu.edu>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Description: Provides multiple ways to combine SNP-level summary statistics at
+    the region-level (protein coding genes, non-coding RNA) using Rcpp to speed
+    up computations. Additionally provides functions for simulating GWAS summary
+    statistics.
+License: GPL-2
 Encoding: UTF-8
 LazyData: true
 Imports: Rcpp (>= 1.0.3),
