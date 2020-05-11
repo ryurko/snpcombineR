@@ -1,3 +1,4 @@
+// -*- mode: C++; c-indent-level: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 #include <RcppArmadillo.h>
 #include <RcppArmadilloExtensions/sample.h>
 #include <omp.h>
@@ -840,7 +841,7 @@ arma::mat fixed_cor_gene_test_sim(arma::mat genotype_data,
                                   int n_cores,
                                   double eps) {
 
-  omp_set_num_threads(n_cores);
+  // omp_set_num_threads(n_cores);
 
   // First compute the correlation matrix of the genotype data using the wrapper
   // for the Armadillo correlation function:
@@ -861,7 +862,7 @@ arma::mat fixed_cor_gene_test_sim(arma::mat genotype_data,
   arma::mat sim_gene_tests(n_gene_sims, 20); // TEMPORARY STORE 20 COLS
   arma::vec sim_case_prob = create_gwas_case_prob(genotype_data, is_non_null,
                                                   causal_snp_i, causal_or, case_rate);
-  # pragma omp parallel for
+  # pragma omp parallel for num_threads(ncores)
   for (int i = 0; i < n_gene_sims; i++) {
 
     // Generate the GWAS results:
@@ -892,7 +893,7 @@ arma::mat resample_gene_test_sim(arma::mat genotype_data,
                                   int n_cores,
                                   double eps) {
 
-  omp_set_num_threads(n_cores);
+  //omp_set_num_threads(n_cores);
 
   arma::mat sim_genotype_data = resample_genotype_data(genotype_data, n_resamples);
 
@@ -911,7 +912,7 @@ arma::mat resample_gene_test_sim(arma::mat genotype_data,
   arma::mat sim_gene_tests(n_gene_sims, 20); // TEMPORARY STORE 20 COLS
   arma::vec sim_case_prob = create_gwas_case_prob(sim_genotype_data, is_non_null,
                                                   causal_snp_i, causal_or, case_rate);
-  # pragma omp parallel for
+  # pragma omp parallel for num_threads(ncores)
   for (int i = 0; i < n_gene_sims; i++) {
 
     // Generate the GWAS results:
@@ -943,11 +944,11 @@ arma::mat resample_cor_gene_test_sim(arma::mat genotype_data,
                                  int n_cores,
                                  double eps) {
 
-  omp_set_num_threads(n_cores);
+  //omp_set_num_threads(n_cores);
   // Intialize the simulation results matrix:
   arma::mat sim_gene_tests(n_gene_sims, 20); // TEMPORARY STORE 20 COLS
 
-  # pragma omp parallel for
+  # pragma omp parallel for num_threads(ncores)
   for (int i = 0; i < n_gene_sims; i++) {
 
     arma::mat sim_genotype_data = resample_genotype_data(genotype_data, n_resamples);
@@ -1055,7 +1056,7 @@ arma::mat resample_svd_gene_test_sim(arma::mat genotype_data,
                                      int truth_sim_block_size,
                                      int n_cores) {
 
-  omp_set_num_threads(n_cores);
+  //omp_set_num_threads(n_cores);
   // Intialize the simulation results matrix:
   arma::mat sim_gene_tests(n_gene_sims, 20); // TEMPORARY STORE 20 COLS
 
@@ -1073,7 +1074,7 @@ arma::mat resample_svd_gene_test_sim(arma::mat genotype_data,
   arma::mat resample_U;
   arma::mat sim_truth_matrix;
 
-  # pragma omp parallel for
+  # pragma omp parallel for num_threads(ncores)
   for (int i = 0; i < n_gene_sims; i++) {
 
     resample_rows_i = Rcpp::RcppArmadillo::sample(row_indices, n_resamples, true);
@@ -1123,13 +1124,13 @@ arma::mat sim_gene_cor_gwas_gene(arma::mat genotype_data,
                                   double case_rate,
                                   int n_cores) {
 
-  omp_set_num_threads(n_cores);
+  //omp_set_num_threads(n_cores);
 
   // Intialize the simulation results matrix:
   arma::mat sim_gene_tests(n_gene_sims, 20); // TEMPORARY STORE 20 COLS
   arma::vec sim_case_prob = create_gwas_case_prob(genotype_data, is_non_null,
                                                   causal_snp_i, causal_or, case_rate);
-  # pragma omp parallel for
+  # pragma omp parallel for num_threads(ncores)
   for (int i = 0; i < n_gene_sims; i++) {
 
     // Generate the GWAS results:

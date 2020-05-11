@@ -1,7 +1,7 @@
 Package: snpcombineR
 Type: Package
 Title: Library for Simulating and Combining GWAS SNP Summary Statistics with Rcpp
-Version: 0.1.0
+Version: 0.2.0
 Author: Ron Yurko
 Maintainer: Ron Yurko <ryurko@andrew.cmu.edu>
 Description: Provides multiple ways to combine SNP-level summary statistics at
@@ -11,8 +11,8 @@ Description: Provides multiple ways to combine SNP-level summary statistics at
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
-Imports: Rcpp (>= 1.0.3),
+Imports: Rcpp (>= 1.0.4),
     RcppArmadillo
-LinkingTo: Rcpp, RcppArmadillo (>= 0.8.400.0.0)
-RoxygenNote: 6.0.1
+LinkingTo: Rcpp, RcppArmadillo (>= 0.9.870.2.0)
+RoxygenNote: 7.1.0
 SystemRequirements: C++11
